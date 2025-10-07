@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: dicom_client
+Version: 1.0.0
+Summary: A command-line tool for managing DICOM files and servers.
+Author: Inès Benziane
+Author-email: i.benziane@institut-myologie.org
+Requires-Dist: click
+Requires-Dist: pynetdicom
+Dynamic: author
+Dynamic: author-email
+Dynamic: requires-dist
+Dynamic: summary

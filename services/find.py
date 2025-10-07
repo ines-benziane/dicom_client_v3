@@ -3,7 +3,6 @@ from pydicom.dataset import Dataset
 from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind
 from config.server_config import TelemisConfig
 from services.search_criteria import SearchCriteria
-import logging
 
 class Find:
     PENDING_STATUS = 0xFF00
@@ -39,6 +38,9 @@ class Find:
         ds.SeriesDescription = search_criteria.series_description or ''
         ds.AccessionNumber = search_criteria.accession_number or ''
         ds.Modality = search_criteria.modality or ''
+        # request identifiers to be returned by the SCP
+        ds.StudyInstanceUID = getattr(search_criteria, 'study_instance_uid', '') or ''
+        ds.SeriesInstanceUID = getattr(search_criteria, 'series_instance_uid', '') or ''
         return ds
 
     def _perform_find(self, query_dataset):
@@ -56,16 +58,13 @@ class Find:
     def search_data(self, criteria: SearchCriteria):
         """Main entry point"""
         query_level = criteria.level
-        print(f"Query Level: {query_level}")
         info_model = "STUDY_ROOT"
         self.sop_class = StudyRootQueryRetrieveInformationModelFind
         try:
             if self._establish_connection():
-                print("Association established.")
                 query_dataset = self._build_query_dataset(criteria, query_level)    
                 return self._perform_find(query_dataset)
             return []
         except Exception as e:
-            print(f"DICOM search error: {e}")
             logging.error(f"DICOM search error: {e}")
             return []

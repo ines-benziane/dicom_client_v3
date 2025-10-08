@@ -24,6 +24,7 @@ def common_dicom_options(f):
 def build_search_criteria(**kwargs):
     """Build a dictionary of search criteria from provided keyword arguments."""
     criteria = {k: v for k, v in kwargs.items() if v is not None}
+    criteria.setdefault('level', 'STUDY')
     if 'level' in criteria:
         criteria['level'] = criteria['level'].upper()
     return criteria

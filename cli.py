@@ -7,7 +7,7 @@ from cli_options import common_dicom_options, build_search_criteria
 from services.get import Get
 import time
 
-# debug_logger()
+debug_logger()
 
 find_service = Find(TelemisConfig)
 get_service = Get(TelemisConfig)
@@ -25,21 +25,6 @@ def search(**kwargs):
     """Search for DICOM studies based on provided criteria."""
     start_time = time.time()
     click.echo(click.style("Searching DICOM studies...", fg='cyan', bold=True))
-
-    # # Build search criteria dictionary
-    # criteria_kwargs = build_search_criteria(
-    #     level=level,
-    #     patient_id=patient_id,
-    #     patient_name=patient_name,
-    #     study_date=study_date,
-    #     study_description=study_description,
-    #     series_description=series_description,
-    #     accession_number=accession_number,
-    #     modality=modality,
-    #     series_instance_uid=series_instance_uid,
-    #     study_instance_uid=study_instance_uid,
-    #     patient_birth_date=patient_birth_date,
-    # )
 
     criteria_kwargs = build_search_criteria(**kwargs)
     if not criteria_kwargs:

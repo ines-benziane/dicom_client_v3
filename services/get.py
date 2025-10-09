@@ -60,10 +60,9 @@ class Get:
         ds = event.dataset
         ds.file_meta = event.file_meta
         
-        if hasattr(ds, 'SeriesInstanceUID') and ds.SeriesInstanceUID:
-            series_dir = self.output_dir / ds.SeriesInstanceUID
+        if hasattr(ds, 'SeriesNumber') and hasattr(ds, 'SeriesDescription'):
+            series_dir = self.output_dir / f"{ds.SeriesNumber}_{ds.SeriesDescription.replace(' ', '_')}"
             series_dir.mkdir(exist_ok=True)
-            
             filename = f"{ds.SOPInstanceUID}.dcm"
             self._save_dicom_file(ds, filename, series_dir)
             
@@ -79,15 +78,9 @@ class Get:
         """Build the DICOM query dataset based on search criteria"""
         ds = Dataset()
         ds.QueryRetrieveLevel = query_level
-        ds.PatientID = search_criteria.patient_id or ''
-        ds.PatientName = search_criteria.patient_name or ''
-        ds.StudyDate = search_criteria.study_date or ''
-        ds.StudyDescription = search_criteria.study_description or ''
-        ds.SeriesDescription = search_criteria.series_description or ''
-        ds.AccessionNumber = search_criteria.accession_number or ''
-        ds.Modality = search_criteria.modality or ''
         ds.StudyInstanceUID = getattr(search_criteria, 'study_instance_uid', '') or ''
-        ds.SeriesInstanceUID = getattr(search_criteria, 'series_instance_uid', '') or ''
+        if query_level == "SERIES":
+            ds.SeriesInstanceUID = getattr(search_criteria, 'series_instance_uid', '') or ''
         return ds
         
     def _perform_get(self, query_dataset):

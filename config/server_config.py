@@ -5,4 +5,3 @@ class TelemisConfig:
     PORT = 7008
     CALLING_AET = "RMN-STATION"
     CALLED_AET = "TELEMISQR"
-

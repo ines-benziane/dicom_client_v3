@@ -5,8 +5,9 @@ from services.search_criteria import SearchCriteria
 from pynetdicom import debug_logger
 from cli_options import common_dicom_options, build_search_criteria
 from services.get import Get
+import time
 
-debug_logger()
+# debug_logger()
 
 find_service = Find(TelemisConfig)
 get_service = Get(TelemisConfig)
@@ -19,28 +20,28 @@ def cli():
 
 @cli.command()
 @common_dicom_options
-def search(level, patient_id, patient_name, study_date, study_description, series_description, accession_number, modality, series_instance_uid, study_instance_uid, patient_birth_date):
-# def search(**kwargs):  
+# def search(level, patient_id, patient_name, study_date, study_description, series_description, accession_number, modality, series_instance_uid, study_instance_uid, patient_birth_date):
+def search(**kwargs):  
     """Search for DICOM studies based on provided criteria."""
+    start_time = time.time()
     click.echo(click.style("Searching DICOM studies...", fg='cyan', bold=True))
 
-    # Build search criteria dictionary
-    criteria_kwargs = build_search_criteria(
-        level=level,
-        patient_id=patient_id,
-        patient_name=patient_name,
-        study_date=study_date,
-        study_description=study_description,
-        series_description=series_description,
-        accession_number=accession_number,
-        modality=modality,
-        series_instance_uid=series_instance_uid,
-        study_instance_uid=study_instance_uid,
-        patient_birth_date=patient_birth_date,
-    )
+    # # Build search criteria dictionary
+    # criteria_kwargs = build_search_criteria(
+    #     level=level,
+    #     patient_id=patient_id,
+    #     patient_name=patient_name,
+    #     study_date=study_date,
+    #     study_description=study_description,
+    #     series_description=series_description,
+    #     accession_number=accession_number,
+    #     modality=modality,
+    #     series_instance_uid=series_instance_uid,
+    #     study_instance_uid=study_instance_uid,
+    #     patient_birth_date=patient_birth_date,
+    # )
 
-    # criteria_kwargs = build_search_criteria(**kwargs)
-    # click.echo(click.style(f"DEBUG criteria: {criteria_kwargs}", fg='magenta'))
+    criteria_kwargs = build_search_criteria(**kwargs)
     if not criteria_kwargs:
         return
 
@@ -59,6 +60,9 @@ def search(level, patient_id, patient_name, study_date, study_description, serie
     for idx, study in enumerate(studies, 1):
         click.echo(click.style(f"[{idx}]", fg='green', bold=True) + f" {study}")
         click.echo()
+    end_time = time.time()
+    elapsed = end_time - start_time
+    click.echo(click.style(f"Elapsed time for search: {elapsed:.2f} seconds", fg='cyan', bold=True))
 
 @cli.command()
 @common_dicom_options

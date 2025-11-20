@@ -19,7 +19,7 @@ class Get:
         self.ae_factory = self.config.CALLING_AET
         # files_received is incremented by the C-STORE handler (may run in another thread)
         self.files_received = 0
-        self._files_lock = threading.Lock()
+        # self._files_lock = threading.Lock()
         self._setup_ae()
 
     def _setup_ae(self):
@@ -38,13 +38,26 @@ class Get:
         self.scp = self.ae.start_server(("", 0), block=False, evt_handlers=handlers)
         
         ext_neg = [self.role_mr_image, self.role_mr_spectro]
-        self.assoc = self.ae.associate(
-            self.config.HOST, 
-            self.config.PORT, 
-            ae_title=self.config.CALLED_AET, 
-            ext_neg=ext_neg, 
-            evt_handlers=handlers
+        # Build optional association kwargs from config (do not break if absent)
+        assoc_kwargs = dict(
+            ae_title=self.config.CALLED_AET,
+            ext_neg=ext_neg,
+            evt_handlers=handlers,
         )
+
+        try:
+            self.assoc = self.ae.associate(
+                self.config.HOST,
+                self.config.PORT,
+                **assoc_kwargs,
+            )
+        except TypeError as e:
+            logging.debug("Association failed due to unexpected argument: %s", e)
+            self.assoc = self.ae.associate(
+                self.config.HOST,
+                self.config.PORT,
+            )
+
         return self.assoc.is_established
 
     def _save_dicom_file(self, dataset, filename, target_dir=None):
@@ -65,12 +78,8 @@ class Get:
             series_dir.mkdir(exist_ok=True)
             filename = f"{ds.SOPInstanceUID}.dcm"
             self._save_dicom_file(ds, filename, series_dir)
-            
-            with self._files_lock:
-                self.files_received += 1
-                if self.files_received % 10 == 0:
-                    print(f"I: Received {self.files_received} files...")
-
+            self.files_received += 1
+            print(f"I: Received {self.files_received} files...")
 
         return 0x0000
 
@@ -93,8 +102,9 @@ class Get:
                 break
 
         # collect result and timing
-        with self._files_lock:
-            received = self.files_received
+        # with self._files_lock:
+        #     received = self.files_received
+        received = self.files_received
         elapsed = time.time() - start_time
 
         print(f"I: C-GET completed in {elapsed:.1f}s — files received for this study: {received}")

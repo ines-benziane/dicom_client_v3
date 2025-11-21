@@ -87,9 +87,12 @@ class Get:
         """Build the DICOM query dataset based on search criteria"""
         ds = Dataset()
         ds.QueryRetrieveLevel = query_level
-        ds.StudyInstanceUID = getattr(search_criteria, 'study_instance_uid', '') or ''
+        ds.StudyInstanceUID = search_criteria.study_instance_uid or ''
+        ds.SeriesInstanceUID = search_criteria.series_instance_uid  or ''
         if query_level == "SERIES":
-            ds.SeriesInstanceUID = getattr(search_criteria, 'series_instance_uid', '') or ''
+            ds.SeriesDate = search_criteria.series_date or ''
+            ds.SeriesDescription = search_criteria.series_description or ''
+            ds.SeriesNumber = ''
         return ds
         
     def _perform_get(self, query_dataset):

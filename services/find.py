@@ -36,11 +36,14 @@ class Find:
         ds.StudyDate = search_criteria.study_date or ''
         ds.StudyDescription = search_criteria.study_description or ''
         ds.AccessionNumber = search_criteria.accession_number or ''
-        ds.StudyInstanceUID = getattr(search_criteria, 'study_instance_uid', '') or ''
+        ds.StudyInstanceUID = search_criteria.study_instance_uid or ''
+        ds.SeriesInstanceUID = search_criteria.series_instance_uid or ''
         if query_level == "SERIES":
+            ds.SeriesDate = search_criteria.series_date or ''
             ds.Modality = search_criteria.modality or ''
             ds.SeriesDescription = search_criteria.series_description or ''
-            ds.SeriesInstanceUID = getattr(search_criteria, 'series_instance_uid', '') or ''
+            ds.SeriesNumber = ''
+
         return ds
 
     def _perform_find(self, query_dataset):

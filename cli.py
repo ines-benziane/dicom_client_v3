@@ -26,7 +26,8 @@ def search(**kwargs):
     start_time = time.time()
     click.echo(click.style("Searching DICOM studies...", fg='cyan', bold=True))
 
-    criteria_kwargs = build_search_criteria(**kwargs)
+    criteria_kwargs, jsonpath = build_search_criteria(**kwargs)
+    print(jsonpath)
     if not criteria_kwargs:
         return
 
@@ -55,7 +56,7 @@ def get(**kwargs):
     """Retrieve DICOM files based on provided criteria."""
     click.echo(click.style("Retrieving DICOM files...", fg='cyan', bold=True))
     # Build initial search criteria (we will C-FIND at STUDY level to get StudyInstanceUIDs)
-    criteria_kwargs = build_search_criteria(**kwargs)
+    criteria_kwargs, jsonpath2 = build_search_criteria(**kwargs)
     if not criteria_kwargs:
         click.echo(click.style("No criteria provided.", fg='red'))
         return

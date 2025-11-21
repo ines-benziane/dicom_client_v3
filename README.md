@@ -20,29 +20,28 @@ After installation, you can use the tool with the following commands:
 
 ```bash
 # Using the full name
-dicom-cli search --patient-name="Patient Name"
+dicom-client search --patient-name="Patient Name"
 
-# Or with the shortcut
-dcli search --patient-name="Patient Name"
-```
 
 ### Command examples
 
 ```bash
 # Search by patient name
-dcli search --patient-name="Benziane Ines"
+dicom-client search --patient-name="Benziane Ines"
 
 # Search by patient ID
-dcli search --patient-id="12345"
+dicom-client search --patient-id="CL*"
+
+dicom-client search -p"CL*"
 
 # Search by study date
-dcli search --study-date="20231001"
+dicom-client search --study-date="20231001"
 
 # Search with multiple criteria
-dcli search --patient-name="Benziane" --modality="CT" --study-date="20231001"
+dicom-client search --patient-name="Benziane" --modality="CT" --study-date="20231001"
 
 # Search at series level
-dcli search --level="SERIES" --patient-name="Benziane"
+dicom-client search --level="SERIES" --patient-name="Benziane"
 ```
 
 ### Available options

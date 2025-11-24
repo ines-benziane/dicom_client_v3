@@ -37,8 +37,8 @@ class Find:
         ds.StudyDescription = search_criteria.study_description or ''
         ds.AccessionNumber = search_criteria.accession_number or ''
         ds.StudyInstanceUID = search_criteria.study_instance_uid or ''
-        ds.SeriesInstanceUID = search_criteria.series_instance_uid or ''
         if query_level == "SERIES":
+            ds.SeriesInstanceUID = search_criteria.series_instance_uid or ''
             ds.SeriesDate = search_criteria.series_date or ''
             ds.Modality = search_criteria.modality or ''
             ds.SeriesDescription = search_criteria.series_description or ''

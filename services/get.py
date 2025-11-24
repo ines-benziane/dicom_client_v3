@@ -1,5 +1,6 @@
 from pathlib import Path
 from pydicom import Dataset
+from services.json_file import SeriesMetadataCollector
 from services.search_criteria import SearchCriteria
 from pynetdicom import AE, evt, StoragePresentationContexts, AllStoragePresentationContexts, build_role
 from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelGet, MRImageStorage, MRSpectroscopyStorage
@@ -21,6 +22,7 @@ class Get:
         self.files_received = 0
         # self._files_lock = threading.Lock()
         self._setup_ae()
+        self.metadata_collector = SeriesMetadataCollector(self.output_dir)
 
     def _setup_ae(self):
         """Configure Application Entity (AE)"""
@@ -74,7 +76,7 @@ class Get:
         ds.file_meta = event.file_meta
         
         if hasattr(ds, 'SeriesNumber') and hasattr(ds, 'SeriesDescription'):
-            series_dir = self.output_dir / f"{ds.SeriesNumber}_{ds.SeriesDescription.replace(' ', '_')}"
+            series_dir = self.output_dir / f"{ds.SeriesNumber}_SE_{ds.SeriesDescription.replace(' ', '_')}"
             series_dir.mkdir(exist_ok=True)
             filename = f"{ds.SOPInstanceUID}.dcm"
             self._save_dicom_file(ds, filename, series_dir)
@@ -127,6 +129,7 @@ class Get:
             if self._establish_connection():
                 query_ds = self._build_query_dataset(criteria, query_level)
                 received = self._perform_get(query_ds)
+
                 return received
             return False
         except Exception as e:

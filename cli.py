@@ -27,6 +27,7 @@ def search(**kwargs):
     click.echo(click.style("Searching DICOM studies...", fg='cyan', bold=True))
 
     criteria_kwargs, jsonpath = build_search_criteria(**kwargs)
+
     if not criteria_kwargs:
         return
 
@@ -61,40 +62,69 @@ def get(**kwargs):
         return
 
     # Force study-level find
-    criteria_kwargs['level'] = 'STUDY'
+    # criteria_kwargs['level'] = 'STUDY'
     criteria = SearchCriteria(**criteria_kwargs)
 
-    # 1) C-FIND to list matching studies
+    # 1) C-FIND to list matching studies or series
     try:
-        studies = find_service.search_data(criteria)
+        results = find_service.search_data(criteria)
     except Exception as e:
         click.echo(click.style(f"Find error: {e}", fg='red', bold=True))
         return
 
-    if not studies:
-        click.echo(click.style("No studies found.", fg='red', bold=True))
+    if not results:
+        click.echo(click.style(f"No {criteria.level.lower()}s found.", fg='red', bold=True))
         return
 
-    # extract StudyInstanceUIDs from responses (each 'study' is a pydicom Dataset)
-    study_uids = []
-    for ds in studies:
-        uid = getattr(ds, 'StudyInstanceUID', None)
-        if uid:
-            study_uids.append(uid)
-
-    click.echo(click.style(f"{len(study_uids)} study(ies) found. Starting retrieval...", fg='green'))
-
-    # 2) For each study, perform a C-GET targeted by StudyInstanceUID
-    total_files = 0
-    for uid in study_uids:
-        click.echo(click.style(f"Retrieving study {uid}...", fg='cyan'))
-        sc = SearchCriteria(level='STUDY', study_instance_uid=uid)
-        try:
-            received = get_service.retrieve_data(sc)
-            total_files += int(received)
-            click.echo(click.style(f"Received {received} files for study {uid}.", fg='green'))
-        except Exception as e:
-            click.echo(click.style(f"Error retrieving study {uid}: {e}", fg='red'))
+    # 2) Extract UIDs based on query level
+    if criteria.level == 'STUDY':
+        # Extract StudyInstanceUIDs from responses
+        study_uids = []
+        for ds in results:
+            uid = getattr(ds, 'StudyInstanceUID', None)
+            if uid:
+                study_uids.append(uid)
+        
+        click.echo(click.style(f"{len(study_uids)} study(ies) found. Starting retrieval...", fg='green'))
+        
+        # Perform C-GET for each study
+        total_files = 0
+        for uid in study_uids:
+            click.echo(click.style(f"Retrieving study {uid}...", fg='cyan'))
+            sc = SearchCriteria(level='STUDY', study_instance_uid=uid)
+            try:
+                received = get_service.retrieve_data(sc)
+                total_files += int(received)
+                click.echo(click.style(f"Received {received} files for study {uid}.", fg='green'))
+            except Exception as e:
+                click.echo(click.style(f"Error retrieving study {uid}: {e}", fg='red'))
+    
+    elif criteria.level == 'SERIES':
+        # Extract StudyInstanceUID and SeriesInstanceUID pairs
+        series_list = []
+        for ds in results:
+            study_uid = getattr(ds, 'StudyInstanceUID', None)
+            series_uid = getattr(ds, 'SeriesInstanceUID', None)
+            if study_uid and series_uid:
+                series_list.append((study_uid, series_uid))
+        
+        click.echo(click.style(f"{len(series_list)} series found. Starting retrieval...", fg='green'))
+        
+        # Perform C-GET for each series
+        total_files = 0
+        for study_uid, series_uid in series_list:
+            click.echo(click.style(f"Retrieving series {series_uid} from study {study_uid}...", fg='cyan'))
+            sc = SearchCriteria(level='SERIES', study_instance_uid=study_uid, series_instance_uid=series_uid)
+            try:
+                received = get_service.retrieve_data(sc)
+                total_files += int(received)
+                click.echo(click.style(f"Received {received} files for series {series_uid}.", fg='green'))
+            except Exception as e:
+                click.echo(click.style(f"Error retrieving series {series_uid}: {e}", fg='red'))
+    
+    else:
+        click.echo(click.style(f"Unsupported query level: {criteria.level}", fg='red', bold=True))
+        return
 
     click.echo(click.style(f"Total files retrieved: {total_files}", fg='yellow', bold=True))
 

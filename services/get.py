@@ -83,7 +83,14 @@ class Get:
         # Extract Patient ID to organize files
         patient_id = getattr(ds, 'PatientID', 'Unknown_Patient')
         # Sanitize patient ID for folder name
-        patient_id_safe = str(patient_id).replace('/', '_').replace('\\', '_')
+        # Use chained replace calls (each with two arguments) to avoid TypeError from invalid extra args
+        patient_id_safe = (
+            str(patient_id)
+            .replace('/', '_')
+            .replace(':', '_')
+            .replace('\\', '_')
+            .replace(' ', '_')
+        )
         
         # Create patient directory if needed
         patient_dir = self.output_dir / patient_id_safe
@@ -100,8 +107,6 @@ class Get:
         # Process series information
         series_number = getattr(ds, 'SeriesNumber', None)
         series_desc = getattr(ds, 'SeriesDescription', 'Unknown_Series')
-        number_of_study_related_instances = getattr(ds, 'NumberOfStudyRelatedInstances', None)
-        
         if series_number is not None:
             # Create series subdirectory inside patient directory
             series_desc_safe = str(series_desc).replace(' ', '_').replace('/', '_').replace('\\', '_')
@@ -154,7 +159,7 @@ class Get:
     def retrieve_data(self, criteria: SearchCriteria):
         """Main entry point"""
         query_level = criteria.level
-        info_model = "STUDY_ROOT"
+        # info_model = "STUDY_ROOT"
         self.files_received = 0
 
         try:

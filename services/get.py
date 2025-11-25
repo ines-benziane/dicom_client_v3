@@ -1,4 +1,5 @@
 from pathlib import Path
+import click
 from pydicom import Dataset
 from services.json_file import SeriesMetadataCollector
 from services.search_criteria import SearchCriteria
@@ -8,6 +9,7 @@ from pydicom.uid import ExplicitVRLittleEndian, ImplicitVRLittleEndian
 import threading
 import time
 import logging
+import tqdm
 
 class Get:
     SUCCESS_STATUS = 0x0000
@@ -22,7 +24,10 @@ class Get:
         self.files_received = 0
         # self._files_lock = threading.Lock()
         self._setup_ae()
-        self.metadata_collector = SeriesMetadataCollector(self.output_dir)
+        # Collector will be initialized per patient
+        self.metadata_collector = None
+        self.current_patient_dir = None
+
 
     def _setup_ae(self):
         """Configure Application Entity (AE)"""
@@ -75,14 +80,37 @@ class Get:
         ds = event.dataset
         ds.file_meta = event.file_meta
         
-        if hasattr(ds, 'SeriesNumber') and hasattr(ds, 'SeriesDescription'):
-            series_dir = self.output_dir / f"{ds.SeriesNumber}_SE_{ds.SeriesDescription.replace(' ', '_')}"
+        # Extract Patient ID to organize files
+        patient_id = getattr(ds, 'PatientID', 'Unknown_Patient')
+        # Sanitize patient ID for folder name
+        patient_id_safe = str(patient_id).replace('/', '_').replace('\\', '_')
+        
+        # Create patient directory if needed
+        patient_dir = self.output_dir / patient_id_safe
+        patient_dir.mkdir(exist_ok=True)
+        
+        # Initialize metadata collector for this patient if not done yet
+        if self.current_patient_dir != patient_dir:
+            if self.metadata_collector is not None:
+                # Save previous patient's metadata
+                self.metadata_collector.save_to_json()
+            self.current_patient_dir = patient_dir
+            self.metadata_collector = SeriesMetadataCollector(patient_dir)
+        
+        # Process series information
+        series_number = getattr(ds, 'SeriesNumber', None)
+        series_desc = getattr(ds, 'SeriesDescription', 'Unknown_Series')
+        number_of_study_related_instances = getattr(ds, 'NumberOfStudyRelatedInstances', None)
+        
+        if series_number is not None:
+            # Create series subdirectory inside patient directory
+            series_desc_safe = str(series_desc).replace(' ', '_').replace('/', '_').replace('\\', '_')
+            series_dir = patient_dir / f"{series_number}_{series_desc_safe}"
             series_dir.mkdir(exist_ok=True)
             filename = f"{ds.SOPInstanceUID}.dcm"
             self._save_dicom_file(ds, filename, series_dir)
             self.files_received += 1
-            print(f"I: Received {self.files_received} files...")
-
+            self.metadata_collector.add_instance(ds)
         return 0x0000
 
     def _build_query_dataset(self, search_criteria, query_level):
@@ -102,13 +130,17 @@ class Get:
         start_time = time.time()
 
         responses = self.assoc.send_c_get(query_dataset, StudyRootQueryRetrieveInformationModelGet)
-        for (status, identifier) in responses:
-            if status and status.Status == self.SUCCESS_STATUS:
-                break
+        pbar = tqdm.tqdm(desc="C-GET", unit="resp", dynamic_ncols=True)
+        try:
+            for (status, identifier) in responses:
+                pbar.update(1)
+                pbar.set_postfix(files_received=self.files_received,
+                        status=(hex(status.Status) if status else "None"))
+                if status and status.Status == self.SUCCESS_STATUS:
+                    break
+        finally:
+            pbar.close()
 
-        # collect result and timing
-        # with self._files_lock:
-        #     received = self.files_received
         received = self.files_received
         elapsed = time.time() - start_time
 
@@ -129,7 +161,11 @@ class Get:
             if self._establish_connection():
                 query_ds = self._build_query_dataset(criteria, query_level)
                 received = self._perform_get(query_ds)
-
+                click.echo(f"I: Total files received: {received}")
+                # Save metadata for the last patient processed
+                if received > 0 and self.metadata_collector is not None:
+                    print("I: Saving series metadata to JSON...")
+                    self.metadata_collector.save_to_json()
                 return received
             return False
         except Exception as e:

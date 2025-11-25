@@ -16,7 +16,8 @@ def common_dicom_options(f):
         click.option('--series-instance-uid', '-seui', help='Series Instance UID to search for.'),
         click.option('--study-instance-uid', '-stui', help='Study Instance UID to search for.'),
         click.option('--patient-birth-date', '-bd', help='Patient Birth Date to search for (YYYYMMDD).'),
-        click.option('--json-series-number-file', '-jsnf', help='Path to JSON file containing series numbers.')
+        # click.option('--json-series-number-file', '-jsnf', help='Path to JSON file containing series numbers.'),
+        click.option('--number-of-study-related-instances', '-nsri', help='Number of Study Related Instances to search for.')
     ]
 
     for option in reversed(options):

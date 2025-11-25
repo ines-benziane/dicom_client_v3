@@ -27,7 +27,6 @@ def search(**kwargs):
     click.echo(click.style("Searching DICOM studies...", fg='cyan', bold=True))
 
     criteria_kwargs, jsonpath = build_search_criteria(**kwargs)
-    print(jsonpath)
     if not criteria_kwargs:
         return
 

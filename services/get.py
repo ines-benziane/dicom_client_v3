@@ -175,7 +175,6 @@ class Get:
         query_level = criteria.level
         # info_model = "STUDY_ROOT"
         self.files_received = 0
-        # Store criteria for use in _handle_store
         self.current_criteria = criteria
 
         try:

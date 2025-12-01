@@ -1,12 +1,13 @@
 from pathlib import Path
 import click
 from pydicom import Dataset
+from services import search_criteria
 from services.json_file import SeriesMetadataCollector
 from services.search_criteria import SearchCriteria
 from pynetdicom import AE, evt, StoragePresentationContexts, AllStoragePresentationContexts, build_role
 from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelGet, MRImageStorage, MRSpectroscopyStorage
 from pydicom.uid import ExplicitVRLittleEndian, ImplicitVRLittleEndian
-import threading
+from controllers.pseudonym_controller import PseudonymController
 import time
 import logging
 import tqdm
@@ -27,6 +28,7 @@ class Get:
         # Collector will be initialized per patient
         self.metadata_collector = None
         self.current_patient_dir = None
+        self.pseudonymizer = PseudonymController()
 
 
     def _setup_ae(self):
@@ -77,7 +79,19 @@ class Get:
 
     def _handle_store(self, event):
         """Handle incoming DICOM store request"""
-        ds = event.dataset
+        # Check if criteria has pseudonymization flags
+        if hasattr(self, 'current_criteria') and self.current_criteria:
+            if getattr(self.current_criteria, 'medical_pseudo', False):
+                ds = self.pseudonymizer.pseudonymize_file(event.dataset)
+            elif getattr(self.current_criteria, 'data_pseudo', False):
+                ds = self.pseudonymizer.pseudonymize_file(event.dataset)
+            # elif getattr(self.current_criteria, 'data_ano', False):
+            #     ds = self.pseudonymizer.anonymize_file(event.dataset)
+            else:
+                ds = event.dataset
+        else:
+            ds = event.dataset
+        
         ds.file_meta = event.file_meta
         
         # Extract Patient ID to organize files
@@ -161,6 +175,8 @@ class Get:
         query_level = criteria.level
         # info_model = "STUDY_ROOT"
         self.files_received = 0
+        # Store criteria for use in _handle_store
+        self.current_criteria = criteria
 
         try:
             if self._establish_connection():

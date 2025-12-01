@@ -1,5 +1,10 @@
 class SearchCriteria:
-    def __init__(self, level=None, patient_id=None, patient_name=None, study_date=None, study_description=None, series_description=None, accession_number=None, modality=None, series_instance_uid=None, study_instance_uid=None, patient_birth_date=None, series_date=None, number_of_study_related_instances=None):
+    def __init__(self, level=None, patient_id=None, patient_name=None,
+                 study_date=None, study_description=None, series_description=None,
+                 accession_number=None, modality=None, series_instance_uid=None,
+                 study_instance_uid=None, patient_birth_date=None, series_date=None,
+                 number_of_study_related_instances=None, medical_pseudo=None,
+                 data_pseudo=None, data_ano=None):
         self.level = level
         self.patient_id = patient_id
         self.patient_name = patient_name
@@ -13,3 +18,6 @@ class SearchCriteria:
         self.patient_birth_date = patient_birth_date
         self.series_date = series_date
         self.number_of_study_related_instances = number_of_study_related_instances
+        self.medical_pseudo = medical_pseudo
+        self.data_pseudo = data_pseudo
+        self.data_ano = data_ano

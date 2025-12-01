@@ -37,7 +37,8 @@ class SeriesMetadataCollector:
         
         json_path = self.output_dir / filename
         with open(json_path, 'w', encoding='utf-8') as f:
-            json.dump(output_data, f, indent=2, ensure_ascii=False)
+            # Use separators to avoid extra whitespace
+            json.dump(output_data, f, indent=2, ensure_ascii=False, separators=(',', ': '))
         print(f"I: Metadata saved to {json_path}")
         return json_path
     

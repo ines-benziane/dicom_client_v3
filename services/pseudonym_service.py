@@ -6,44 +6,11 @@ PSEUDONYM_PREFIX = "PAT"
 CSV_FIELDNAMES = ['pseudonym', 'patient_name', 'patient_ID', 'birth_date', 'sex']
 DEFAULT_CSV_PATH = "mappings.csv"
 
-def create_patient_key(patient_name, birth_date):
-    return f"{patient_name}|{birth_date}"
-
-def read_mappings(csv_path=DEFAULT_CSV_PATH) -> dict:
-    mappings = {}
-    if not os.path.exists(csv_path):
-        return mappings
-    try:
-        with open(csv_path, 'r', encoding='utf-8') as file:
-            reader = csv.DictReader(file, delimiter=';')
-
-            for line in reader:
-                if 'patient_name' not in line or 'pseudonym' not in line or 'birth_date' not in line:
-                    raise ValueError(f"CSV malformed: missing required columns in {csv_path}")
-                
-                key = create_patient_key(line['patient_name'], line['birth_date'])
-                mappings[key] = {
-                "pseudonym": line['pseudonym'],
-                "birth_date": line['birth_date'], 
-                "sex": line['sex']
-            }
-            return mappings
-    except (IOError, UnicodeDecodeError, PermissionError) as e:
-        raise RuntimeError(f"Cannot read mapping file {csv_path}: {e}")
-    except csv.Error as e:
-        raise ValueError(f"CSV format error in {csv_path}: {e}")
 
 def get_patient_field(ds, field_name, default="N/A"):
     if hasattr(ds, field_name):
         return str(getattr(ds, field_name))
     return default
-
-def initialize_data(ds) -> tuple:
-    original_name = get_patient_field(ds, 'PatientName')
-    original_id = get_patient_field(ds, 'PatientID')
-    original_birth_date = get_patient_field(ds, 'PatientBirthDate')
-    original_sex = get_patient_field(ds, 'PatientSex')
-    return original_name, original_id, original_birth_date, original_sex
 
 def empty_data(ds):
     fields_to_clear = ['PatientBirthDate', 'PatientSex']
@@ -71,6 +38,40 @@ def add_patient(csv_path, pseudo,original_name,original_id,original_birth_date,o
             })
     except (IOError, OSError, PermissionError) as e:
         raise RuntimeError(f"Cannot write to mapping file {csv_path}: {e}")
+    
+def create_patient_key(patient_name, birth_date):
+    return f"{patient_name}|{birth_date}"
+
+def read_mappings(csv_path=DEFAULT_CSV_PATH) -> dict:
+    mappings = {}
+    if not os.path.exists(csv_path):
+        return mappings
+    try:
+        with open(csv_path, 'r', encoding='utf-8') as file:
+            reader = csv.DictReader(file, delimiter=';')
+
+            for line in reader:
+                if 'patient_name' not in line or 'pseudonym' not in line or 'birth_date' not in line:
+                    raise ValueError(f"CSV malformed: missing required columns in {csv_path}")
+                
+                key = create_patient_key(line['patient_name'], line['birth_date'])
+                mappings[key] = {
+                "pseudonym": line['pseudonym'],
+                "birth_date": line['birth_date'], 
+                "sex": line['sex']
+            }
+            return mappings
+    except (IOError, UnicodeDecodeError, PermissionError) as e:
+        raise RuntimeError(f"Cannot read mapping file {csv_path}: {e}")
+    except csv.Error as e:
+        raise ValueError(f"CSV format error in {csv_path}: {e}")
+    
+def initialize_data(ds) -> tuple:
+    original_name = get_patient_field(ds, 'PatientName')
+    original_id = get_patient_field(ds, 'PatientID')
+    original_birth_date = get_patient_field(ds, 'PatientBirthDate')
+    original_sex = get_patient_field(ds, 'PatientSex')
+    return original_name, original_id, original_birth_date, original_sex
 
 def add_mapping(ds, csv_path=DEFAULT_CSV_PATH) :
     """Returns pseudonymized dataset"""
@@ -83,7 +84,7 @@ def add_mapping(ds, csv_path=DEFAULT_CSV_PATH) :
         ds.PatientName = mappings[key]["pseudonym"]
         empty_data(ds)
         return ds
-    count = len(mappings) 
+    count = len(mappings)
     pseudo = f"{PSEUDONYM_PREFIX}_{count+1:04d}"
     add_patient(csv_path, pseudo, original_name, original_id, original_birth_date, original_sex)
     ds.PatientName = pseudo

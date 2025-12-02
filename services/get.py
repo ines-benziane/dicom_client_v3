@@ -1,13 +1,14 @@
 from pathlib import Path
 import click
 from pydicom import Dataset
-from services import search_criteria
 from services.json_file import SeriesMetadataCollector
 from services.search_criteria import SearchCriteria
+from services.anonym_service import anonymize_dataset
+from controllers.pseudonym_controller import PseudonymController
 from pynetdicom import AE, evt, StoragePresentationContexts, AllStoragePresentationContexts, build_role
 from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelGet, MRImageStorage, MRSpectroscopyStorage
 from pydicom.uid import ExplicitVRLittleEndian, ImplicitVRLittleEndian
-from controllers.pseudonym_controller import PseudonymController
+import threading
 import time
 import logging
 import tqdm
@@ -28,7 +29,9 @@ class Get:
         # Collector will be initialized per patient
         self.metadata_collector = None
         self.current_patient_dir = None
-        self.pseudonymizer = PseudonymController()
+        # Store current criteria for use in handlers
+        self.current_criteria = None
+        self.pseudo_controller = PseudonymController()
 
 
     def _setup_ae(self):
@@ -79,20 +82,20 @@ class Get:
 
     def _handle_store(self, event):
         """Handle incoming DICOM store request"""
-        # Check if criteria has pseudonymization flags
-        if hasattr(self, 'current_criteria') and self.current_criteria:
-            if getattr(self.current_criteria, 'medical_pseudo', False):
-                ds = self.pseudonymizer.pseudonymize_file(event.dataset)
-            elif getattr(self.current_criteria, 'data_pseudo', False):
-                ds = self.pseudonymizer.pseudonymize_file(event.dataset)
-            # elif getattr(self.current_criteria, 'data_ano', False):
-            #     ds = self.pseudonymizer.anonymize_file(event.dataset)
-            else:
-                ds = event.dataset
-        else:
-            ds = event.dataset
-        
+        ds = event.dataset
         ds.file_meta = event.file_meta
+        
+        # Anonymize dataset if requested
+        if self.current_criteria and getattr(self.current_criteria, 'anonymize_data', False):
+            print("DEBUG: Anonymizing dataset...")
+            ds = anonymize_dataset(ds)
+            print(f"DEBUG: PatientName after anonymization: {getattr(ds, 'PatientName', 'REMOVED')}")
+        # Apply pseudonymization if requested
+        elif self.current_criteria and (getattr(self.current_criteria, 'clinical_pseudo', False) or 
+                                        getattr(self.current_criteria, 'research_pseudo', False) or 
+                                        getattr(self.current_criteria, 'protocol_pseudo', False)):
+           
+            ds = self.pseudo_controller.pseudonymize_file(ds)
         
         # Extract Patient ID to organize files
         patient_id = getattr(ds, 'PatientID', 'Unknown_Patient')
@@ -175,6 +178,7 @@ class Get:
         query_level = criteria.level
         # info_model = "STUDY_ROOT"
         self.files_received = 0
+        # Store criteria for use in handlers
         self.current_criteria = criteria
 
         try:

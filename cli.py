@@ -7,7 +7,7 @@ from cli_options import common_dicom_options, build_search_criteria
 from services.get import Get
 import time
 
-# debug_logger()
+debug_logger()
 
 find_service = Find(TelemisConfig)
 get_service = Get(TelemisConfig)

@@ -21,7 +21,7 @@ def common_dicom_options(f):
         click.option('--clinical-pseudo', '-cps', is_flag=True, help='Enable clinical pseudonymization of patient data.'),
         click.option('--research-pseudo', '-rps', is_flag=True, help='Enable research pseudonymization of patient data.'),
         click.option('--protocol-pseudo', '-pps', is_flag=True, help='Enable protocol pseudonymization of patient data.'),
-        click.option('--anonymize-data', 'anonymize_data', is_flag=True, help='Anonymize patient data by removing name, age, sex while preserving Patient ID.')
+        click.option('--anonymize', '-an', is_flag=True, help='Anonymize patient data by removing name, age, sex while preserving Patient ID.')
     ]
 
     for option in reversed(options):

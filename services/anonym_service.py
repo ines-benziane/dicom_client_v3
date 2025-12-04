@@ -36,8 +36,7 @@ def anonymize_dataset(ds):
         0x00100030,  # PatientBirthDate
         0x00100040,  # PatientSex
         0x00101010,  # PatientAge
-        0x00101030,  # PatientWeight
-        0x00101020,  # PatientSize
+        0x00101030,  # PatientWeig
         0x00101000,  # OtherPatientIDs
         0x00101001,  # OtherPatientNames
         0x00102160,  # EthnicGroup

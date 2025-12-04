@@ -4,7 +4,7 @@ class SearchCriteria:
                  accession_number=None, modality=None, series_instance_uid=None,
                  study_instance_uid=None, patient_birth_date=None, series_date=None,
                  number_of_study_related_instances=None, clinical_pseudo=None,
-                 research_pseudo=None, protocol_pseudo=None, anonymize_data=None):
+                 research_pseudo=None, protocol_pseudo=None, anonymize=None):
         self.level = level
         self.patient_id = patient_id
         self.patient_name = patient_name
@@ -21,4 +21,4 @@ class SearchCriteria:
         self.clinical_pseudo = clinical_pseudo
         self.research_pseudo = research_pseudo
         self.protocol_pseudo = protocol_pseudo
-        self.anonymize_data = anonymize_data
+        self.anonymize_data = anonymize

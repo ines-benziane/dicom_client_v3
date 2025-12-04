@@ -3,7 +3,8 @@ import click
 from pydicom import Dataset
 from services.json_file import SeriesMetadataCollector
 from services.search_criteria import SearchCriteria
-from services.anonym_service import anonymize_dataset
+# from services.anonym_service import anonymize_dataset
+from controllers.anonym_controller import AnonymController
 from controllers.pseudonym_controller import PseudonymController
 from pynetdicom import AE, evt, StoragePresentationContexts, AllStoragePresentationContexts, build_role
 from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelGet, MRImageStorage, MRSpectroscopyStorage
@@ -32,6 +33,7 @@ class Get:
         # Store current criteria for use in handlers
         self.current_criteria = None
         self.pseudo_controller = PseudonymController()
+        self.ano_controller = AnonymController()
 
 
     def _setup_ae(self):
@@ -82,21 +84,18 @@ class Get:
 
     def _handle_store(self, event):
         """Handle incoming DICOM store request"""
-        ds = event.dataset
-        ds.file_meta = event.file_meta
-        
+ 
         # Anonymize dataset if requested
-        if self.current_criteria and getattr(self.current_criteria, 'anonymize_data', False):
-            print("DEBUG: Anonymizing dataset...")
-            ds = anonymize_dataset(ds)
-            print(f"DEBUG: PatientName after anonymization: {getattr(ds, 'PatientName', 'REMOVED')}")
+        if self.current_criteria and getattr(self.current_criteria, 'anonymize', True):
+            ds = self.ano_controller.anonymize_file(event.dataset)
         # Apply pseudonymization if requested
-        elif self.current_criteria and (getattr(self.current_criteria, 'clinical_pseudo', False) or 
-                                        getattr(self.current_criteria, 'research_pseudo', False) or 
-                                        getattr(self.current_criteria, 'protocol_pseudo', False)):
-           
-            ds = self.pseudo_controller.pseudonymize_file(ds)
-        
+        elif self.current_criteria and (getattr(self.current_criteria, 'clinical_pseudo', True) or 
+                                        getattr(self.current_criteria, 'research_pseudo', True) or 
+                                        getattr(self.current_criteria, 'protocol_pseudo', True)):
+            ds = self.pseudo_controller.pseudonymize_file(event.dataset)
+        else:
+            ds = event.dataset
+        ds.file_meta = event.file_meta
         # Extract Patient ID to organize files
         patient_id = getattr(ds, 'PatientID', 'Unknown_Patient')
         # Sanitize patient ID for folder name
@@ -147,6 +146,7 @@ class Get:
             ds.SeriesNumber = ''
         return ds
         
+
     def _perform_get(self, query_dataset):
         """Perform the C-GET operation"""
         start_time = time.time()
@@ -195,5 +195,4 @@ class Get:
         except Exception as e:
             print(f"DICOM retrieval error: {e}")
             return False
-        return False
 

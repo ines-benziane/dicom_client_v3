@@ -23,14 +23,10 @@ class Get:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.config = config
         self.ae_factory = self.config.CALLING_AET
-        # files_received is incremented by the C-STORE handler (may run in another thread)
         self.files_received = 0
-        # self._files_lock = threading.Lock()
         self._setup_ae()
-        # Collector will be initialized per patient
         self.metadata_collector = None
         self.current_patient_dir = None
-        # Store current criteria for use in handlers
         self.current_criteria = None
         self.pseudo_controller = PseudonymController()
         self.ano_controller = AnonymController()

@@ -5,12 +5,14 @@ from services.search_criteria import SearchCriteria
 from pynetdicom import debug_logger
 from cli_options import common_dicom_options, build_search_criteria
 from services.get import Get
+from services.move import Move
 import time
 
-# debug_logger()
+debug_logger()
 
 find_service = Find(TelemisConfig)
 get_service = Get(TelemisConfig)
+move_service = Move(TelemisConfig)
 
 @click.group()
 @click.version_option(version='1.0.0', prog_name='Dicom CLI Tool')
@@ -128,6 +130,41 @@ def get(**kwargs):
 
     click.echo(click.style(f"Total files retrieved: {total_files}", fg='yellow', bold=True))
 
+
+move_service = Move(TelemisConfig)
+
+@cli.command()
+@common_dicom_options
+@click.option('--destination', help='Destination AE Title (default is CALLING_AET)')
+def move(destination, **kwargs):
+    """Retrieve DICOM files using C-MOVE."""
+    click.echo(click.style("Searching for items to move...", fg='cyan'))
+    
+    criteria_kwargs, _ = build_search_criteria(**kwargs)
+    criteria = SearchCriteria(**criteria_kwargs)
+
+    # 1. On trouve d'abord les études/séries (comme dans ta commande get)
+    results = find_service.search_data(criteria)
+    
+    if not results:
+        click.echo("No results found.")
+        return
+
+    total_moved = 0
+    # 2. On boucle sur les résultats pour lancer le move avec des UIDs valides
+    for res in results:
+        study_uid = getattr(res, 'StudyInstanceUID', None)
+        if study_uid:
+            click.echo(f"Moving Study: {study_uid}")
+            sc = SearchCriteria(level='STUDY', study_instance_uid=study_uid)
+            # On passe les options d'anonymisation du move initial
+            sc.anonymize_data = criteria.anonymize_data 
+            
+            received = move_service.move_data(sc, destination_aet=destination)
+            if received:
+                total_moved += received
+
+    click.echo(click.style(f"Done. Total files received: {total_moved}", fg='green', bold=True))
 
 
 if __name__ == '__main__':

@@ -2,10 +2,13 @@ from pynetdicom import AE
 
 class TelemisConfig:
     # HOST = "10.2.30.172"
-    HOST = "10.2.30.172"
+    # HOST = "10.2.30.172"
+    HOST = "192.168.0.170"
 
-    PORT = 7008
-    CALLING_AET = "RMN-STATION"
+    # PORT = 7008
+    PORT= 106
+    # CALLING_AET = "RMN-STATION"
+    CALLING_AET = "RMN-TEST"
     CALLED_AET = "TELEMISQR"
     # Timeouts (in seconds)
     # DIMSE_TIMEOUT: timeout for DIMSE operations (C-STORE, C-FIND, C-GET, etc.)

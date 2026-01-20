@@ -4,7 +4,11 @@ setup.py
 config/__init__.py
 config/server_config.py
 controllers/__init__.py
+controllers/anonym_controller.py
 controllers/find_controller.py
+controllers/get_controller.py
+controllers/move_controller.py
+controllers/pseudonym_controller.py
 dicom_client.egg-info/PKG-INFO
 dicom_client.egg-info/SOURCES.txt
 dicom_client.egg-info/dependency_links.txt
@@ -12,5 +16,10 @@ dicom_client.egg-info/entry_points.txt
 dicom_client.egg-info/requires.txt
 dicom_client.egg-info/top_level.txt
 services/__init__.py
+services/anonym_service.py
 services/find.py
+services/get.py
+services/json_file.py
+services/move.py
+services/pseudonym_service.py
 services/search_criteria.py

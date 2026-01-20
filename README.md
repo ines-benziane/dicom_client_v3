@@ -1,6 +1,6 @@
 # DICOM CLI Tool
 
-A command-line tool for managing DICOM files and servers.
+A co.0mmand-line tool for managing DICOM files and servers.
 
 ## Installation
 

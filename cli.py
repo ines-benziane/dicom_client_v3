@@ -22,7 +22,6 @@ def cli():
 
 @cli.command()
 @common_dicom_options
-# def search(level, patient_id, patient_name, study_date, study_description, series_description, accession_number, modality, series_instance_uid, study_instance_uid, patient_birth_date):
 def search(**kwargs):  
     """Search for DICOM studies based on provided criteria."""
     start_time = time.time()
@@ -63,11 +62,8 @@ def get(**kwargs):
         click.echo(click.style("No criteria provided.", fg='red'))
         return
 
-    # Force study-level find
-    # criteria_kwargs['level'] = 'STUDY'
     criteria = SearchCriteria(**criteria_kwargs)
 
-    # 1) C-FIND to list matching studies or series
     try:
         results = find_service.search_data(criteria)
     except Exception as e:
@@ -78,9 +74,7 @@ def get(**kwargs):
         click.echo(click.style(f"No {criteria.level.lower()}s found.", fg='red', bold=True))
         return
 
-    # 2) Extract UIDs based on query level
     if criteria.level == 'STUDY':
-        # Extract StudyInstanceUIDs from responses
         study_uids = []
         for ds in results:
             uid = getattr(ds, 'StudyInstanceUID', None)
@@ -88,8 +82,7 @@ def get(**kwargs):
                 study_uids.append(uid)
         
         click.echo(click.style(f"{len(study_uids)} study(ies) found. Starting retrieval...", fg='green'))
-        
-        # Perform C-GET for each study
+
         total_files = 0
         for uid in study_uids:
             click.echo(click.style(f"Retrieving study {uid}...", fg='cyan'))
@@ -102,7 +95,6 @@ def get(**kwargs):
                 click.echo(click.style(f"Error retrieving study {uid}: {e}", fg='red'))
     
     elif criteria.level == 'SERIES':
-        # Extract StudyInstanceUID and SeriesInstanceUID pairs
         series_list = []
         for ds in results:
             study_uid = getattr(ds, 'StudyInstanceUID', None)
@@ -112,7 +104,6 @@ def get(**kwargs):
         
         click.echo(click.style(f"{len(series_list)} series found. Starting retrieval...", fg='green'))
         
-        # Perform C-GET for each series
         total_files = 0
         for study_uid, series_uid in series_list:
             click.echo(click.style(f"Retrieving series {series_uid} from study {study_uid}...", fg='cyan'))
@@ -133,39 +124,53 @@ def get(**kwargs):
 
 move_service = Move(TelemisConfig)
 
+from time import time
+
 @cli.command()
 @common_dicom_options
-@click.option('--destination', help='Destination AE Title (default is CALLING_AET)')
+@click.option('--destination', help='Destination AE Title')
 def move(destination, **kwargs):
     """Retrieve DICOM files using C-MOVE."""
-    click.echo(click.style("Searching for items to move...", fg='cyan'))
+    start_time = time()
+    click.echo(click.style("Phase 1 : Recherche des UIDs (C-FIND)...", fg='cyan'))
     
     criteria_kwargs, _ = build_search_criteria(**kwargs)
     criteria = SearchCriteria(**criteria_kwargs)
 
-    # 1. On trouve d'abord les études/séries (comme dans ta commande get)
     results = find_service.search_data(criteria)
     
     if not results:
-        click.echo("No results found.")
+        click.echo(click.style("Aucun résultat trouvé pour ces critères.", fg='red'))
         return
 
     total_moved = 0
-    # 2. On boucle sur les résultats pour lancer le move avec des UIDs valides
+    
+
     for res in results:
         study_uid = getattr(res, 'StudyInstanceUID', None)
-        if study_uid:
-            click.echo(f"Moving Study: {study_uid}")
+        series_uid = getattr(res, 'SeriesInstanceUID', None) # Pour le niveau SERIES
+
+        if criteria.level == 'SERIES' and series_uid:
+            click.echo(f"Transfert de la Série : {series_uid}")
+            sc = SearchCriteria(
+                level='SERIES', 
+                study_instance_uid=study_uid, 
+                series_instance_uid=series_uid
+            )
+        else:
+            click.echo(f"Transfert de l'Étude : {study_uid}")
             sc = SearchCriteria(level='STUDY', study_instance_uid=study_uid)
-            # On passe les options d'anonymisation du move initial
-            sc.anonymize_data = criteria.anonymize_data 
-            
+
+        try:
             received = move_service.move_data(sc, destination_aet=destination)
             if received:
-                total_moved += received
+                total_moved += int(received)
+        except Exception as e:
+            click.echo(click.style(f"Error during move: {e}", fg='red'))
 
-    click.echo(click.style(f"Done. Total files received: {total_moved}", fg='green', bold=True))
-
+    click.echo(click.style(f" Terminé. Total fichiers reçus et triés : {total_moved}", fg='green', bold=True))
+    elasped = time() - start_time
+    click.echo(click.style(f"Elapsed time for all operation: {elasped:.2f} seconds", fg='cyan', bold=True))
 
 if __name__ == '__main__':
     cli()

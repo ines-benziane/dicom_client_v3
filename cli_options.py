@@ -30,10 +30,9 @@ def common_dicom_options(f):
 
 def build_search_criteria(**kwargs):
     """Build a dictionary of search criteria from provided keyword arguments."""
-    json_file = kwargs.pop('json_series_number_file', None)
 
     criteria = {k: v for k, v in kwargs.items() if v is not None}
     criteria.setdefault('level', 'STUDY')
     if 'level' in criteria:
         criteria['level'] = criteria['level'].upper()
-    return criteria, json_file
+    return criteria

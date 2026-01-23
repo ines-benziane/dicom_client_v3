@@ -8,7 +8,7 @@ from services.get import Get
 from services.move import Move
 import time
 
-debug_logger()
+# debug_logger()
 
 find_service = Find(TelemisConfig)
 get_service = Get(TelemisConfig)
@@ -27,7 +27,7 @@ def search(**kwargs):
     start_time = time.time()
     click.echo(click.style("Searching DICOM studies...", fg='cyan', bold=True))
 
-    criteria_kwargs, jsonpath = build_search_criteria(**kwargs)
+    criteria_kwargs = build_search_criteria(**kwargs)
 
     if not criteria_kwargs:
         return
@@ -134,7 +134,7 @@ def move(destination, **kwargs):
     start_time = time()
     click.echo(click.style("Phase 1 : Recherche des UIDs (C-FIND)...", fg='cyan'))
     
-    criteria_kwargs, _ = build_search_criteria(**kwargs)
+    criteria_kwargs = build_search_criteria(**kwargs)
     criteria = SearchCriteria(**criteria_kwargs)
 
     results = find_service.search_data(criteria)

@@ -58,7 +58,7 @@ def read_mappings(csv_path=DEFAULT_CSV_PATH) -> dict:
                 mappings[key] = {
                 "pseudonym": line['pseudonym'],
                 "birth_date": line['birth_date'], 
-                "sex": line['sex']
+                # "sex": line['sex']
             }
             return mappings
     except (IOError, UnicodeDecodeError, PermissionError) as e:

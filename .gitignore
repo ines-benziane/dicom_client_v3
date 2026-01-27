@@ -3,6 +3,9 @@ __pycache__/
 *$py.class
 *.so
 .Python
+*.egg-info/
+dist/
+build/
 
 venv/
 env/
@@ -13,3 +16,13 @@ output_dir/
 .vscode/
 .idea/
 *.swp
+
+*.csv
+*.xlsx
+!example_patients.xlsx 
+
+*.log
+
+.DS_Store
+Thumbs.db
+```

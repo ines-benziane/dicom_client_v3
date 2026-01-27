@@ -6,7 +6,7 @@ from pynetdicom import debug_logger
 from cli_options import common_dicom_options, build_search_criteria
 from services.get import Get
 from services.move import Move
-import time
+from time import time
 
 # debug_logger()
 
@@ -24,7 +24,6 @@ def cli():
 @common_dicom_options
 def search(**kwargs):  
     """Search for DICOM studies based on provided criteria."""
-    start_time = time.time()
     click.echo(click.style("Searching DICOM studies...", fg='cyan', bold=True))
 
     criteria_kwargs = build_search_criteria(**kwargs)
@@ -46,10 +45,6 @@ def search(**kwargs):
     click.echo(click.style(f"{len(studies)} study(ies) found.", fg='green', bold=True))
     for idx, study in enumerate(studies, 1):
         click.echo(click.style(f"[{idx}]", fg='green', bold=True) + f" {study}")
-        click.echo()
-    end_time = time.time()
-    elapsed = end_time - start_time
-    click.echo(click.style(f"Elapsed time for search: {elapsed:.2f} seconds", fg='cyan', bold=True))
 
 @cli.command()
 @common_dicom_options
@@ -131,7 +126,6 @@ from time import time
 @click.option('--destination', help='Destination AE Title')
 def move(destination, **kwargs):
     """Retrieve DICOM files using C-MOVE."""
-    start_time = time()
     click.echo(click.style("Phase 1 : Recherche des UIDs (C-FIND)...", fg='cyan'))
     
     criteria_kwargs = build_search_criteria(**kwargs)
@@ -168,9 +162,6 @@ def move(destination, **kwargs):
         except Exception as e:
             click.echo(click.style(f"Error during move: {e}", fg='red'))
 
-    click.echo(click.style(f" Terminé. Total fichiers reçus et triés : {total_moved}", fg='green', bold=True))
-    elasped = time() - start_time
-    click.echo(click.style(f"Elapsed time for all operation: {elasped:.2f} seconds", fg='cyan', bold=True))
 
 if __name__ == '__main__':
     cli()

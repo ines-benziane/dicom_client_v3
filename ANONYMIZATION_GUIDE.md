@@ -1,4 +1,4 @@
-# DICOM Anonymization Feature
+<!-- # DICOM Anonymization Feature
 
 ## Overview
 This feature allows you to anonymize DICOM files during retrieval by removing patient demographic information while preserving the Patient ID for file organization purposes.
@@ -14,6 +14,7 @@ dicom-client get --patient-name "fromes yves" --study-date "20120606" --anonymiz
 ## What Gets Removed
 
 When `--anonymize-data` is used, the following DICOM tags are removed from the retrieved files:
+Anonymze data is a work in progress
 
 - **PatientName** - Patient's full name
 - **PatientBirthDate** - Date of birth
@@ -66,7 +67,6 @@ The anonymization is performed by the `anonymize_dataset()` function in `service
 3. Removes each tag if it exists in the dataset
 4. Returns the modified dataset
 
-The anonymization occurs in the `_handle_store()` method of the Get service, immediately after receiving each DICOM file from the server, before it is saved to disk.
 
 ## Example Commands
 
@@ -95,5 +95,4 @@ dicom-client get --patient-name "Smith*" --modality "MR" --study-date "20230101-
 - Anonymization happens during file retrieval, not during search (C-FIND)
 - The Patient ID is intentionally preserved for file organization
 - If you need to remove the Patient ID as well, you would need to modify the `anonymize_dataset()` function in `services/anonym_service.py`
-- Anonymization is applied before files are saved to disk
-- The JSON metadata file will still contain the Patient ID for organization purposes
+- The JSON metadata file will still contain the Patient ID for organization purposes -->

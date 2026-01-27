@@ -40,10 +40,10 @@ class Move:
         
         patient_id = self.clean_name(getattr(ds, 'PatientID', 'Unknown_Patient'))
         patient_path = self.temp_dir / patient_id
-        patient_path.mkdir(exist_ok=True)
+        patient_path.mkdir(exist_ok=True, parents=True)
         
         filename = f"{ds.SOPInstanceUID}.dcm"
-        ds.save_as(patient_path / filename, write_like_original=False)
+        ds.save_as(patient_path / filename, enforce_file_format=False)
         
         self.files_received += 1
         return 0x0000

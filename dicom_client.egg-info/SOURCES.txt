@@ -1,10 +1,12 @@
 README.md
 cli.py
+cli_options.py
 setup.py
 config/__init__.py
 config/server_config.py
 controllers/__init__.py
 controllers/anonym_controller.py
+controllers/batch_controller.py
 controllers/find_controller.py
 controllers/get_controller.py
 controllers/move_controller.py

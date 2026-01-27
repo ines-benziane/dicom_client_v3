@@ -1,6 +1,6 @@
 # DICOM CLI Tool
 
-A co.0mmand-line tool for managing DICOM files and servers.
+A command-line tool for managing DICOM files and servers.
 
 ## Installation
 
@@ -71,11 +71,21 @@ dicom_client_v2/
 │   └── server_config.py   # Server configuration
 ├── controllers/
 │   ├── find_controller.py
-│   └── get_controller.py
+│   ├── get_controller.py
+│   ├── move_controller.py
+│   ├──anonym_controller.py
+│   ├──batch_controller.py
+│   ├──pseudonym_controller.py
 ├── services/
 │   ├── find.py           # DICOM search service
+│   ├── get.py
+│   ├── get.py
+│   ├── json_file.py
+│   ├── pseudonym_service.py
 │   └── search_criteria.py # Search criteria
 ├── setup.py              # Installation configuration
+├── run_process_v2.py
+├── mappings.csv
 └── requirements.txt      # Dependencies
 ```
 

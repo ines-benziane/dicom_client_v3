@@ -4,6 +4,7 @@ cli_options.py
 setup.py
 config/__init__.py
 config/server_config.py
+config/user_config.py
 controllers/__init__.py
 controllers/anonym_controller.py
 controllers/batch_controller.py
@@ -22,6 +23,7 @@ services/anonym_service.py
 services/find.py
 services/get.py
 services/json_file.py
+services/medical_pseudonym_service.py
 services/move.py
 services/pseudonym_service.py
 services/search_criteria.py

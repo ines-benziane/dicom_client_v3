@@ -2,7 +2,7 @@ from pynetdicom import AE
 
 class UserConfig:
 
-#  CONFIG BENJAMIN MARTY
+#  # CONFIG BENJAMIN MARTY
     # IP = "192.168.5.17"
     # PORT= 106
     # CALLING_AET = "RMN-BMARTY"

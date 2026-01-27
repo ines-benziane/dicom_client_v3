@@ -1,5 +1,4 @@
 from datetime import datetime
-import threading
 import csv
 import os
 
@@ -7,47 +6,43 @@ PSEUDONYM_PREFIX = "PAT"
 CSV_FIELDNAMES = ['pseudonym', 'patient_name', 'patient_ID', 'birth_date', 'sex']
 DEFAULT_CSV_PATH = "mappings.csv"
 
-mapping_lock = threading.Lock()
 
 def get_patient_field(ds, field_name, default="N/A"):
-    """Retrieve a field from the dataset, returning a default if not present."""
     if hasattr(ds, field_name):
         return str(getattr(ds, field_name))
     return default
 
 def empty_data(ds):
-    """Erase sensitive patient data from the dataset."""
     fields_to_clear = ['PatientBirthDate', 'PatientSex']
     for field in fields_to_clear:
         if hasattr(ds, field):
             setattr(ds, field, '')
 
-def patient_exists(mappings, patient_ID):
-    """Check if a patient_ID exists in the mappings."""
-    return patient_ID in mappings
+def patient_exists(mappings, patient_name):
+    return patient_name in mappings
 
-def add_patient(csv_path, pseudo,original_id, original_sex):
-    """Add a new patient mapping to the CSV file."""
+def add_patient(csv_path, pseudo,original_name,original_id,original_birth_date,original_sex):
     try:
-        file_exists = os.path.exists(csv_path) and os.path.getsize(csv_path) > 0
         with open(csv_path, 'a', newline='', encoding='utf-8') as file:
-            writer = csv.DictWriter(file, fieldnames=CSV_FIELDNAMES, delimiter=';')
-            if not file_exists:
-                    writer.writeheader()
+            fieldnames = CSV_FIELDNAMES
 
+            writer = csv.DictWriter(file, fieldnames=fieldnames, delimiter=';')
+            if not os.path.exists(csv_path) or os.path.getsize(csv_path) == 0:
+                    writer.writeheader()
             writer.writerow({
                 'pseudonym':pseudo,
+                'patient_name': original_name,
                 'patient_ID' : original_id,
+                'birth_date' : original_birth_date,
                 'sex': original_sex
             })
     except (IOError, OSError, PermissionError) as e:
         raise RuntimeError(f"Cannot write to mapping file {csv_path}: {e}")
     
-# def create_patient_key(patient_ID, birth_date):
-#     return f"{patient_ID}|{birth_date}"
+def create_patient_key(patient_name, birth_date):
+    return f"{patient_name}|{birth_date}"
 
 def read_mappings(csv_path=DEFAULT_CSV_PATH) -> dict:
-    """Read existing patient mappings from the CSV file."""
     mappings = {}
     if not os.path.exists(csv_path):
         return mappings
@@ -56,13 +51,14 @@ def read_mappings(csv_path=DEFAULT_CSV_PATH) -> dict:
             reader = csv.DictReader(file, delimiter=';')
 
             for line in reader:
-                if 'patient_ID' not in line or 'pseudonym' not in line or 'birth_date' not in line:
+                if 'patient_name' not in line or 'pseudonym' not in line or 'birth_date' not in line:
                     raise ValueError(f"CSV malformed: missing required columns in {csv_path}")
                 
-                patient_id = line['patient_ID']
-                mappings[patient_id] = {
+                key = create_patient_key(line['patient_name'], line['birth_date'])
+                mappings[key] = {
                 "pseudonym": line['pseudonym'],
-                "sex": line.get('sex', 'N/A')
+                "birth_date": line['birth_date'], 
+                # "sex": line['sex']
             }
             return mappings
     except (IOError, UnicodeDecodeError, PermissionError) as e:
@@ -79,18 +75,18 @@ def initialize_data(ds) -> tuple:
 
 def add_mapping(ds, csv_path=DEFAULT_CSV_PATH) :
     """Returns pseudonymized dataset"""
-    if not hasattr(ds, 'PatientID'):
+    if not hasattr(ds, 'PatientName'):
         return ds
     original_name, original_id, original_birth_date, original_sex = initialize_data(ds)
-    with mapping_lock:
-        mappings = read_mappings(csv_path)
-        if patient_exists(mappings, original_id):
-            pseudo = mappings[original_id]["pseudonym"]
-        else:
-            count = len(mappings)
-            pseudo = f"{PSEUDONYM_PREFIX}_{count+1:04d}"
-            
-            add_patient(csv_path, pseudo, original_id, original_sex)
+    mappings = read_mappings(csv_path)
+    key = create_patient_key(original_name, original_birth_date)
+    if patient_exists(mappings, key):
+        ds.PatientName = mappings[key]["pseudonym"]
+        empty_data(ds)
+        return ds
+    count = len(mappings)
+    pseudo = f"{PSEUDONYM_PREFIX}_{count+1:04d}"
+    add_patient(csv_path, pseudo, original_name, original_id, original_birth_date, original_sex)
     ds.PatientName = pseudo
     empty_data(ds)
     return ds

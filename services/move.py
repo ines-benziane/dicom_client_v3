@@ -18,7 +18,6 @@ class Move:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.temp_dir = self.output_dir / "temp_transit"
         self.temp_dir.mkdir(parents=True, exist_ok=True)
-        # Initialisation identique à ton Get.py
         self.ano_controller = AnonymController()
         self.pseudo_controller = PseudonymController()
         

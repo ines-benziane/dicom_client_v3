@@ -12,4 +12,7 @@ class UserConfig:
     PORT= 106
     CALLING_AET = "RMN-TEST"
 
+#  CONFIG HYPERION
+
+
     CALLED_AET = "TELEMISQR"

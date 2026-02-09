@@ -99,21 +99,21 @@ class Move:
                     p_dir = self.output_dir / p_id
                     p_dir.mkdir(parents=True, exist_ok=True)
 # ORGANIZED BY SERIES
-                        # s_num = getattr(ds, 'SeriesNumber', '0')
-                        # s_desc = self.clean_name(getattr(ds, 'SeriesDescription', 'NoDesc'))
-                        # s_dir = p_dir / f"{s_num}_{s_desc}"
-                        # s_dir.mkdir(parents=True, exist_ok=True)
-                        # destination = s_dir / file_path.name
-# NOT ORGNIZED BY SERIES
-                    destination = p_dir / file_path.name
+                    s_num = getattr(ds, 'SeriesNumber', '0')
+                    s_desc = self.clean_name(getattr(ds, 'SeriesDescription', 'NoDesc'))
+                    s_dir = p_dir / f"{s_num}_{s_desc}"
+                    s_dir.mkdir(parents=True, exist_ok=True)
+                    destination = s_dir / file_path.name
+# NOT ORGANIZED BY SERIES
+                    # destination = p_dir / file_path.name
 
-                    if self.current_patient_dir != p_dir:
-                        if self.metadata_collector:
-                            self.metadata_collector.save_to_json()
-                        self.current_patient_dir = p_dir
-                        self.metadata_collector = SeriesMetadataCollector(p_dir)
+                    # if self.current_patient_dir != p_dir:
+                    #     if self.metadata_collector:
+                    #         self.metadata_collector.save_to_json()
+                    #     self.current_patient_dir = p_dir
+                    #     self.metadata_collector = SeriesMetadataCollector(p_dir)
 
-                    self.metadata_collector.add_instance(ds)
+                    # self.metadata_collector.add_instance(ds)
 
                     file_path.rename(destination)
 

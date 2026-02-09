@@ -18,7 +18,6 @@ class Move:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.temp_dir = self.output_dir / "temp_transit"
         self.temp_dir.mkdir(parents=True, exist_ok=True)
-        # Initialisation identique à ton Get.py
         self.ano_controller = AnonymController()
         self.pseudo_controller = PseudonymController()
         
@@ -43,7 +42,7 @@ class Move:
         patient_path.mkdir(exist_ok=True, parents=True)
         
         filename = f"{ds.SOPInstanceUID}.dcm"
-        ds.save_as(patient_path / filename, enforce_file_format=False)
+        ds.save_as(patient_path / filename, enforce_file_format=True)
         
         self.files_received += 1
         return 0x0000
@@ -95,24 +94,27 @@ class Move:
             for file_path in bar:
                 try:
                     ds = pydicom.dcmread(file_path, force=True)
-                    
+
                     p_id = self.clean_name(getattr(ds, 'PatientID', 'Unknown'))
-                    s_num = getattr(ds, 'SeriesNumber', '0')
-                    s_desc = self.clean_name(getattr(ds, 'SeriesDescription', 'NoDesc'))
-                    
                     p_dir = self.output_dir / p_id
-                    s_dir = p_dir / f"{s_num}_{s_desc}"
-                    s_dir.mkdir(parents=True, exist_ok=True)
+                    p_dir.mkdir(parents=True, exist_ok=True)
+# ORGANIZED BY SERIES
+                        # s_num = getattr(ds, 'SeriesNumber', '0')
+                        # s_desc = self.clean_name(getattr(ds, 'SeriesDescription', 'NoDesc'))
+                        # s_dir = p_dir / f"{s_num}_{s_desc}"
+                        # s_dir.mkdir(parents=True, exist_ok=True)
+                        # destination = s_dir / file_path.name
+# NOT ORGNIZED BY SERIES
+                    destination = p_dir / file_path.name
 
                     if self.current_patient_dir != p_dir:
-                        if self.metadata_collector: 
+                        if self.metadata_collector:
                             self.metadata_collector.save_to_json()
                         self.current_patient_dir = p_dir
                         self.metadata_collector = SeriesMetadataCollector(p_dir)
-                    
+
                     self.metadata_collector.add_instance(ds)
 
-                    destination = s_dir / file_path.name
                     file_path.rename(destination)
 
                 except Exception as e:
@@ -124,7 +126,6 @@ class Move:
         click.echo(click.style("Globally sorted successfully.", fg='green', bold=True))
         elapsed = time() - start_time
         click.echo(click.style(f"Elapsed time for sorting: {elapsed:.2f} seconds", fg='cyan', bold=True))
-        # Clean up temporary directory
         for item in self.temp_dir.iterdir():
             if item.is_dir():
                 for subitem in item.iterdir():

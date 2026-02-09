@@ -52,6 +52,7 @@ class TransferStats:
     def increment_pseudo(self):
         with stats_lock:
             self.pseudo_files += 1
+
     
     def increment_pseudo_errors(self):
         with stats_lock:
@@ -62,11 +63,11 @@ def process_single_series(p_id, series_desc, research_pseudo, stats):
     """Treats a single biomarker series for a patient."""
     mover = Move(TelemisConfig)
     finder = Find(TelemisConfig)
-    
-    
+
+
     try:
         logger.info(f"[{p_id}] Searching: {series_desc}")
-        
+
         criteria = SearchCriteria(
             patient_id=p_id,
             series_description=series_desc,
@@ -122,9 +123,9 @@ def process_patient(p_id, research_pseudo, stats):
     logger.info(f"\n{'='*60}")
     logger.info(f"[{p_id}] Starting patient processing")
     logger.info(f"{'='*60}")
-    
+
     total_transferred = 0
-    
+
     with ThreadPoolExecutor(max_workers=4) as executor:
         futures = {
             executor.submit(process_single_series, p_id, series_desc, research_pseudo, stats): series_desc
@@ -141,28 +142,6 @@ def process_patient(p_id, research_pseudo, stats):
     
     logger.info(f"[{p_id}] Completed: {total_transferred} series transferred")
     return total_transferred
-
-
-# def pseudonymize_file_safe(file_path, pseudonymizer, stats):
-#     """Pseudonymize"""
-#     try:
-#         ds = pydicom.dcmread(file_path)
-    
-#         with pseudo_lock:
-#             ds = pseudonymizer.pseudonymize_file(ds)
-        
-#         ds.save_as(file_path)
-#         stats.increment_pseudo()
-#         return True
-    
-#     except pydicom.errors.InvalidDicomError:
-#         logger.warning(f"Invalid DICOM file: {os.path.basename(file_path)}")
-#         stats.increment_pseudo_errors()
-#         return False
-#     except Exception as e:
-#         logger.error(f"Error pseudonymizing {os.path.basename(file_path)}: {e}")
-#         stats.increment_pseudo_errors()
-#         return False
 
 
 def pseudonymize_file_safe(file_path, pseudonymizer, stats):
@@ -184,10 +163,8 @@ def pseudonymize_file_safe(file_path, pseudonymizer, stats):
             stats.increment_pseudo_errors()
             return False
         
-        # Lecture DICOM avec force=True pour être plus permissif
-        ds = pydicom.dcmread(file_path, force=True)
+        ds = pydicom.dcmread(file_path)
         
-        # Vérification que c'est bien un DICOM valide
         if not hasattr(ds, 'SOPInstanceUID'):
             logger.warning(f"Missing SOPInstanceUID (not a valid DICOM): {os.path.basename(file_path)}")
             stats.increment_pseudo_errors()
@@ -268,7 +245,8 @@ def load_patient_ids(file_path):
 @click.option('--research-pseudo', is_flag=True, default=True, help='Enable pseudonymization')
 @click.option('--max-workers', '-w', default=2, help='Number of parallel patients (default: 2)')
 @click.option('--pseudo-workers', '-pw', default=5, help='Number of parallel pseudonymization workers (default: 5)')
-def main(file, research_pseudo, max_workers, pseudo_workers):
+@click.option('--no-series-folders', is_flag=True, default=False, help='Save files directly in patient folder (no series subfolders)')
+def main(file, research_pseudo, max_workers, pseudo_workers, no_series_folders):
     """Process DICOM images: search, transfer and pseudonymize"""
     
     if not os.path.exists(file):
@@ -288,7 +266,7 @@ def main(file, research_pseudo, max_workers, pseudo_workers):
         patients = load_patient_ids(file)
         stats.total_patients = len(patients)
         logger.info(f"Loaded {len(patients)} patients to process")
-        
+
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {
                 executor.submit(process_patient, p_id, research_pseudo, stats): p_id

@@ -75,7 +75,7 @@ class Get:
         if target_dir is None:
             target_dir = self.output_dir
         filepath = target_dir / filename
-        dataset.save_as(filepath, write_like_original=False)
+        dataset.save_as(filepath, write_like_original=True)
 
 
     def _handle_store(self, event):
@@ -120,12 +120,15 @@ class Get:
         series_number = getattr(ds, 'SeriesNumber', None)
         series_desc = getattr(ds, 'SeriesDescription', 'Unknown_Series')
         if series_number is not None:
-            # Create series subdirectory inside patient directory
             series_desc_safe = str(series_desc).replace(' ', '_').replace('/', '_').replace('\\', '_')
             series_dir = patient_dir / f"{series_number}_{series_desc_safe}"
             series_dir.mkdir(exist_ok=True)
             filename = f"{ds.SOPInstanceUID}.dcm"
             self._save_dicom_file(ds, filename, series_dir)
+        else:
+            filename = f"{ds.SOPInstanceUID}.dcm"
+            self._save_dicom_file(ds, filename, patient_dir)
+
             self.files_received += 1
             self.metadata_collector.add_instance(ds)
         return 0x0000

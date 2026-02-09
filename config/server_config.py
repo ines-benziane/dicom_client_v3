@@ -10,8 +10,8 @@ class TelemisConfig:
     HOST = "192.168.0.170"
     PORT= 106
 
-    # CALLING_AET = "RMN-LRIGLER"
-    CALLING_AET = "RMN-TEST"
+    CALLING_AET = "RMN-LRIGLER"
+    # CALLING_AET = "RMN-TEST"
     CALLED_AET = "TELEMISQR"
 
 #  CONNFI USER 

@@ -1,11 +1,11 @@
 import click
-from services.find import Find
-from config.server_config import TelemisConfig
-from services.search_criteria import SearchCriteria
+from dicom.services.find import Find
+from dicom.config.server_config import TelemisConfig
+from dicom.services.search_criteria import SearchCriteria
 from pynetdicom import debug_logger
-from cli_options import common_dicom_options, build_search_criteria
-from services.get import Get
-from services.move import Move
+from dicom.cli_options import common_dicom_options, build_search_criteria
+from dicom.services.get import Get
+from dicom.services.move import Move
 from time import time
 
 # debug_logger()
@@ -52,7 +52,7 @@ def get(**kwargs):
     """Retrieve DICOM files based on provided criteria."""
     click.echo(click.style("Retrieving DICOM files...", fg='cyan', bold=True))
     # Build initial search criteria (we will C-FIND at STUDY level to get StudyInstanceUIDs)
-    criteria_kwargs, jsonpath2 = build_search_criteria(**kwargs)
+    criteria_kwargs = build_search_criteria(**kwargs)
     if not criteria_kwargs:
         click.echo(click.style("No criteria provided.", fg='red'))
         return

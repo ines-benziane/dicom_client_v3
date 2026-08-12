@@ -1,11 +1,11 @@
 from pathlib import Path
 import click
 from pydicom import Dataset
-from services.json_file import SeriesMetadataCollector
-from services.search_criteria import SearchCriteria
-# from services.anonym_service import anonymize_dataset
-from controllers.anonym_controller import AnonymController
-from controllers.pseudonym_controller import PseudonymController
+from dicom.services.json_file import SeriesMetadataCollector
+from dicom.services.search_criteria import SearchCriteria
+# from dicom.services.anonym_service import anonymize_dataset
+from dicom.controllers.anonym_controller import AnonymController
+from dicom.controllers.pseudonym_controller import PseudonymController
 from pynetdicom import AE, evt, StoragePresentationContexts, AllStoragePresentationContexts, build_role
 from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelGet, MRImageStorage, MRSpectroscopyStorage
 from pydicom.uid import ExplicitVRLittleEndian, ImplicitVRLittleEndian

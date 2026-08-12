@@ -1,8 +1,8 @@
 from pynetdicom import AE, evt
 from pydicom.dataset import Dataset
 from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind
-from config.server_config import TelemisConfig
-from services.search_criteria import SearchCriteria
+from dicom.config.server_config import TelemisConfig
+from dicom.services.search_criteria import SearchCriteria
 
 class Find:
     PENDING_STATUS = 0xFF00

@@ -7,12 +7,12 @@ import pandas as pd
 from threading import Lock
 from pynetdicom import evt
 from pydicom.errors import InvalidDicomError
-from config.server_config import TelemisConfig
-from config.user_config import UserConfig
-from services.find import Find
-from services.move import Move
-from services.search_criteria import SearchCriteria
-from controllers.pseudonym_controller import PseudonymController
+from dicom.config.server_config import TelemisConfig
+from dicom.config.user_config import UserConfig
+from dicom.services.find import Find
+from dicom.services.move import Move
+from dicom.services.search_criteria import SearchCriteria
+from dicom.controllers.pseudonym_controller import PseudonymController
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 logging.basicConfig(

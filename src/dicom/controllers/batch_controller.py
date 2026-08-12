@@ -1,6 +1,6 @@
-from services.find import Find
-from services.move import Move
-from services.search_criteria import SearchCriteria
+from dicom.services.find import Find
+from dicom.services.move import Move
+from dicom.services.search_criteria import SearchCriteria
 
 class BatchController:
     def __init__(self, config):

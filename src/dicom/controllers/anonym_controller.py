@@ -1,4 +1,4 @@
-from services.anonym_service import anonymize_dataset
+from dicom.services.anonym_service import anonymize_dataset
 
 class AnonymController :
     def __init__ (self):

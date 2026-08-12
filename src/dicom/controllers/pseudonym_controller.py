@@ -1,4 +1,4 @@
-from services.pseudonym_service import add_mapping, DEFAULT_CSV_PATH
+from dicom.services.pseudonym_service import add_mapping, DEFAULT_CSV_PATH
 
 class PseudonymController :
     def __init__ (self, csv_path=DEFAULT_CSV_PATH):

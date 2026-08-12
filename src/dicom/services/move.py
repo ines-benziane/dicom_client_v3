@@ -6,10 +6,10 @@ import click
 from pydicom import Dataset
 from pynetdicom import AE, evt, StoragePresentationContexts
 from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelMove
-from services.search_criteria import SearchCriteria
-from services.json_file import SeriesMetadataCollector
-from controllers.anonym_controller import AnonymController
-from controllers.pseudonym_controller import PseudonymController
+from dicom.services.search_criteria import SearchCriteria
+from dicom.services.json_file import SeriesMetadataCollector
+from dicom.controllers.anonym_controller import AnonymController
+from dicom.controllers.pseudonym_controller import PseudonymController
 
 class Move:
     def __init__(self, config, output_dir="output_dir"):

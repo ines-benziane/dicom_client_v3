@@ -3,12 +3,12 @@ import pydicom
 import os
 import click
 from time import  time
-from services.find import Find
-from services.move import Move
-from services.search_criteria import SearchCriteria
-from config.server_config import TelemisConfig
-from cli_options import common_dicom_options, build_search_criteria
-from controllers.pseudonym_controller import PseudonymController
+from dicom.services.find import Find
+from dicom.services.move import Move
+from dicom.services.search_criteria import SearchCriteria
+from dicom.config.server_config import TelemisConfig
+from dicom.cli_options import common_dicom_options, build_search_criteria
+from dicom.controllers.pseudonym_controller import PseudonymController
 
 from pynetdicom import evt
 

@@ -1,6 +1,6 @@
-from services.move import Move
-from config.server_config import TelemisConfig
-from services.search_criteria import SearchCriteria
+from dicom.services.move import Move
+from dicom.config.server_config import TelemisConfig
+from dicom.services.search_criteria import SearchCriteria
 
 class MoveController:
     def __init__(self):

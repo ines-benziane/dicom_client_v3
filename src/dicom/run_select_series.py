@@ -25,7 +25,9 @@ For each patient and each rule in SELECTION_RULES:
      the N latest, as the rule says.
   3. C-MOVE only those selected series (the slow part: actual images).
 Then, as in run_process.py: optional pseudonymization of the received files
-and final sort into output_dir/<patient>/<series>/.
+and final sort into output_dir/<patient>/<series>/. Finally, one
+output_dir/<patient>/series_metadata.json per patient (PatientID + list of
+SeriesNumber received), same format as the C-GET path (SeriesMetadataCollector).
 
 Usage (from PIPELINE_01/dicom, `pipeline` env, on the machine whose IP is in
 UserConfig):
@@ -42,6 +44,8 @@ To change what is retrieved, edit SELECTION_RULES only:
 import os
 import click
 import logging
+import pydicom
+from pathlib import Path
 from pynetdicom import evt
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -51,6 +55,7 @@ from dicom.services.find import Find
 from dicom.services.move import Move
 from dicom.services.search_criteria import SearchCriteria
 from dicom.controllers.pseudonym_controller import PseudonymController
+from dicom.services.json_file import SeriesMetadataCollector
 from dicom.run_process import TransferStats, load_patient_ids, pseudonymize_file_safe
 
 logger = logging.getLogger(__name__)
@@ -160,6 +165,23 @@ def pseudonymize_received(temp_dir, pseudonymizer, stats, workers):
     logger.info(f"Pseudonymization complete: {stats.pseudo_files} files, {stats.pseudo_errors} errors")
 
 
+def write_series_metadata(patient_dirs):
+    """Write series_metadata.json in each patient folder, from the sorted files.
+    Reads one header per series folder (the folder holds a single series)."""
+    for p_dir in patient_dirs:
+        collector = SeriesMetadataCollector(p_dir)
+        for s_dir in sorted(d for d in p_dir.iterdir() if d.is_dir()):
+            first = next((f for f in s_dir.iterdir() if f.is_file()), None)
+            if first is None:
+                continue
+            try:
+                collector.add_instance(pydicom.dcmread(first, stop_before_pixels=True, force=True))
+            except Exception as e:
+                logger.error(f"Cannot read {first}: {e}")
+        if collector.series_numbers:
+            collector.save_to_json()
+
+
 @click.command()
 @click.option('--file', '-f', required=True, help='CSV or XL Path (Format: PatientID)')
 @click.option('--research-pseudo/--no-research-pseudo', default=True, help='Pseudonymize received files (default: on)')
@@ -196,6 +218,8 @@ def main(file, research_pseudo, max_workers, pseudo_workers):
             mover_global.final_global_sort()
         except Exception as e:
             logger.error(f"Final sort failed: {e}")
+        write_series_metadata(d for d in Path(mover_global.output_dir).iterdir()
+                              if d.is_dir() and d != Path(mover_global.temp_dir))
         logger.info(f"DONE - Patients: {stats.total_patients}, Series: {stats.total_series}, "
                     f"Errors: {stats.total_errors}")
 

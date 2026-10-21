@@ -26,3 +26,6 @@ output_dir/
 .DS_Store
 Thumbs.db
 ```
+# per-user DICOM config (templates: *.example.py)
+src/dicom/config/user_config.py
+src/dicom/config/server_config.py

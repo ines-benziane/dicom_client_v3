@@ -41,6 +41,7 @@ class Find:
         if query_level == "SERIES":
             ds.SeriesInstanceUID = search_criteria.series_instance_uid or ''
             ds.SeriesDate = search_criteria.series_date or ''
+            ds.SeriesTime = ''
             ds.Modality = search_criteria.modality or ''
             ds.SeriesDescription = search_criteria.series_description or ''
             ds.SeriesNumber = ''

@@ -7,6 +7,7 @@ from dicom.services.find import Find
 from dicom.services.move import Move
 from dicom.services.search_criteria import SearchCriteria
 from dicom.config.server_config import TelemisConfig
+from dicom.config.user_config import UserConfig
 from dicom.cli_options import common_dicom_options, build_search_criteria
 from dicom.controllers.pseudonym_controller import PseudonymController
 
@@ -37,7 +38,8 @@ def main(**kwargs):
     click.echo(click.style(f" {len(results)} series found.", fg='green'))
    
     handlers = [(evt.EVT_C_STORE, mover._handle_store)]
-    scp = mover.ae.start_server(("192.168.4.163", 106), block=False, evt_handlers=handlers)
+    # receive on this machine's IP and port (user_config.py, declared in Telemis with its AE title)
+    scp = mover.ae.start_server((UserConfig.IP, UserConfig.PORT), block=False, evt_handlers=handlers)
     
     try:
         for idx, res in enumerate(results, 1):

@@ -1,4 +1,5 @@
 from pynetdicom import AE, evt
+import logging
 from pydicom.dataset import Dataset
 from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind
 from dicom.config.server_config import TelemisConfig
@@ -33,6 +34,7 @@ class Find:
         ds.QueryRetrieveLevel = query_level
         ds.PatientID = search_criteria.patient_id or ''
         ds.PatientName = search_criteria.patient_name or ''
+        ds.PatientBirthDate = ''
         ds.StudyDate = search_criteria.study_date or ''
         ds.StudyDescription = search_criteria.study_description or ''
         ds.AccessionNumber = search_criteria.accession_number or ''
